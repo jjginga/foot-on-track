@@ -1,4 +1,4 @@
-package com.jjginga.TrainningPlan;
+package com.jjginga.TrainingPlan;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
