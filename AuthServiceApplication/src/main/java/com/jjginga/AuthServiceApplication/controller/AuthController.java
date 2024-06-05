@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,8 +27,11 @@ public class AuthController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final ReactiveAuthenticationManager authenticationManager;
+
+    public AuthController(ReactiveAuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
 
     @RequestMapping(value ="/login", method = RequestMethod.POST)
     public ResponseEntity<?> login(@RequestBody JwtRequest jwtRequest) throws Exception{
@@ -40,7 +44,7 @@ public class AuthController {
             throw new Exception("Authentication");
         }
 
-        UserDetails userDetails = this.userService.loadUserByUsername(jwtRequest.getUsername());
+        UserDetails userDetails = this.userService.findByUsername(jwtRequest.getUsername()).block();
         String token = this.jwtUtils.generateToken(userDetails);
         return ResponseEntity.ok(new JwtResponse(token));
     }

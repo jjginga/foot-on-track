@@ -11,11 +11,11 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 public class GatewayConfig {
 
     @Autowired
-    private JwtTokenService jwtTokenService;  // Garantindo que JwtTokenService seja injetado corretamente
+    private JwtTokenService jwtTokenService;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenService);  // Criando JwtAuthenticationFilter como um bean
+        return new JwtAuthenticationFilter(jwtTokenService);
     }
 
     @Bean

@@ -23,8 +23,16 @@ public class JwtAuthenticationFilter implements WebFilter, Ordered {
     }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain  chain) {
+    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath();
+
+        // Bypass JWT validation for Swagger and actuator endpoints
+        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") ||
+                path.startsWith("/swagger-resources") || path.startsWith("/webjars") ||
+                path.startsWith("/actuator") || path.endsWith(".html")) {
+            return chain.filter(exchange);
+        }
 
         List<String> authHeaders = request.getHeaders().getOrEmpty("Authorization");
         if (authHeaders.isEmpty() || !jwtTokenService.validateToken(authHeaders.get(0))) {
