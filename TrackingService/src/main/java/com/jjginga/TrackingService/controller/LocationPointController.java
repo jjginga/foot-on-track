@@ -4,12 +4,13 @@ import com.jjginga.TrackingService.entity.LocationPoint;
 import com.jjginga.TrackingService.service.LocationPointService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/locations")
+@RequestMapping("/locations")
 public class LocationPointController {
 
     @Autowired
@@ -22,6 +23,7 @@ public class LocationPointController {
     }
 
     @GetMapping("/session/{sessionId}")
+    @PreAuthorize("@apiSecurity.hasUserRole()")
     public ResponseEntity<List<LocationPoint>> getLocationPointsBySession(@PathVariable Long sessionId) {
         List<LocationPoint> points = locationPointService.findAllBySessionId(sessionId);
         return !points.isEmpty() ? ResponseEntity.ok(points) : ResponseEntity.noContent().build();

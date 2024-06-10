@@ -35,6 +35,7 @@ public class AnalysisService {
             throw new IllegalArgumentException("Session not found with ID: " + sessionId);
         }
 
+
         double totalDistance = calculateTotalDistanceForSession(sessionId);
         double totalTime = calculateTotalTimeForSession(session);
 
@@ -42,13 +43,17 @@ public class AnalysisService {
     }
 
     private double calculateTotalTimeForSession(RunningSession session) {
-        if (session.getEndTime() != null && session.getStartTime() != null) {
-            long startSeconds = session.getStartTime().toEpochSecond(ZoneOffset.UTC);
-            long endSeconds = session.getEndTime().toEpochSecond(ZoneOffset.UTC);
-            double totalTimeInMinutes = (endSeconds - startSeconds) / 60.0; // Converte segundos para minutos
-            return totalTimeInMinutes;
-        }
-        return 0.0;
+        if (session.getEndTime() == null && session.getStartTime() == null)
+            return 0.0;
+
+        long startSeconds = session.getStartTime().toEpochSecond(ZoneOffset.UTC);
+        long endSeconds = session.getEndTime() != null ? session.getEndTime().toEpochSecond(ZoneOffset.UTC)
+                : locationPointRepository.findAllByRunningSessionId(session.getId())
+                .stream().reduce((i,j) -> j).get()
+                .getTimestamp().toEpochSecond(ZoneOffset.UTC);
+        double totalTimeInMinutes = (endSeconds - startSeconds) / 60.0;
+        return totalTimeInMinutes;
+
     }
 
     public AnalysisResult predictPerformance(Long userId) {
@@ -75,14 +80,17 @@ public class AnalysisService {
         List<double[]> data = sessions.stream()
                 .map(session -> new double[] {
                         calculateTotalDistanceForSession(session.getId()),
+                        calculateTotalTimeForSession(session),
                         DataAnalysisUtil.calculateTotalElevationGain(locationPointRepository.findAllByRunningSessionId(session.getId()))
                 }).collect(Collectors.toList());
 
         double[] distances = data.stream().mapToDouble(d -> d[0]).toArray();
-        double[] elevationGains = data.stream().mapToDouble(d -> d[1]).toArray();
+        double[] time = data.stream().mapToDouble(d -> d[1]).toArray();
+        double[] elevationGains = data.stream().mapToDouble(d -> d[2]).toArray();
 
         return DataFrame.of(
                 DoubleVector.of("distance", distances),
+                DoubleVector.of("time", time),
                 DoubleVector.of("elevationGain", elevationGains)
         );
     }

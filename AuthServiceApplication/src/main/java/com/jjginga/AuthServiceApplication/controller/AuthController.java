@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
@@ -27,11 +27,8 @@ public class AuthController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    private final ReactiveAuthenticationManager authenticationManager;
-
-    public AuthController(ReactiveAuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @RequestMapping(value ="/login", method = RequestMethod.POST)
     public ResponseEntity<?> login(@RequestBody JwtRequest jwtRequest) throws Exception{
@@ -44,14 +41,13 @@ public class AuthController {
             throw new Exception("Authentication");
         }
 
-        UserDetails userDetails = this.userService.findByUsername(jwtRequest.getUsername()).block();
+        UserDetails userDetails = this.userService.loadUserByUsername(jwtRequest.getUsername());
         String token = this.jwtUtils.generateToken(userDetails);
         return ResponseEntity.ok(new JwtResponse(token));
     }
 
     @RequestMapping(value ="/register", method = RequestMethod.POST)
     public ResponseEntity<?> register(@RequestBody MyUser user) throws Exception {
-
         return ResponseEntity.ok(this.userService.saveUser(user));
     }
 

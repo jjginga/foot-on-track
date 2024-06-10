@@ -22,7 +22,7 @@ public class DataAnalysisUtil {
         //applying Haversine formula
         double a = Math.pow(Math.sin(dLat / 2), 2)
                 + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dLon / 2), 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double c = 2 * Math.asin(Math.min(1, Math.sqrt(a)));
 
         //returns the distance in Kms
         return EARTH_RADIUS_KM * c;

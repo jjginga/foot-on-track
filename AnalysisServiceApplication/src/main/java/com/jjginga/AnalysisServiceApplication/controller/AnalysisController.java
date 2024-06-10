@@ -5,19 +5,21 @@ import com.jjginga.AnalysisServiceApplication.model.CurrentAnalysisResult;
 import com.jjginga.AnalysisServiceApplication.service.AnalysisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/analysis")
+@RequestMapping("/analysis")
 public class AnalysisController {
 
     @Autowired
     private AnalysisService analysisService;
 
     @GetMapping("/performance/{userId}")
+    @PreAuthorize("@apiSecurity.hasUserRole()")
     public ResponseEntity<AnalysisResult> getPerformanceAnalysis(@PathVariable Long userId) {
         try {
             AnalysisResult result = analysisService.predictPerformance(userId);
@@ -28,6 +30,7 @@ public class AnalysisController {
     }
 
     @GetMapping("/session/{sessionId}")
+    @PreAuthorize("@apiSecurity.hasUserRole()")
     public ResponseEntity<CurrentAnalysisResult> analyzeSession(@PathVariable Long sessionId) {
         try {
             CurrentAnalysisResult result = analysisService.analyzeSession(sessionId);
