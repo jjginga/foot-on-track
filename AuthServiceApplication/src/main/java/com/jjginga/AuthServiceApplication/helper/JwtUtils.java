@@ -15,7 +15,7 @@ import java.util.function.Function;
 public class JwtUtils {
 
     private static final String SECRET_KEY = "4469bsd74346ssv4iu3nh6343m4t35shas37v3hw353ii43ah4";
-    private static final SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS256;
+    //private static final SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS256;
 
 
     public String generateToken(UserDetails userDetails) {

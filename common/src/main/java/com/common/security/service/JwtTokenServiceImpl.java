@@ -10,9 +10,6 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    @Value("${jwt.expiration}")
-    private long expirationTime;
-
     @Override
     public boolean validateToken(String token) {
         try {

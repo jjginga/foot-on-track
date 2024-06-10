@@ -2,7 +2,6 @@ package com.common.security.interceptor;
 
 
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.common.security.context.RequestContext;
 import com.common.security.service.JwtTokenService;
