@@ -1,5 +1,6 @@
 package com.jjginga.AnalysisServiceApplication.controller;
 
+import com.jjginga.AnalysisServiceApplication.entity.RunningSession;
 import com.jjginga.AnalysisServiceApplication.model.AnalysisResult;
 import com.jjginga.AnalysisServiceApplication.model.CurrentAnalysisResult;
 import com.jjginga.AnalysisServiceApplication.service.AnalysisService;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/analysis")
@@ -40,5 +43,12 @@ public class AnalysisController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("/history/{userId}")
+    @PreAuthorize("@apiSecurity.hasUserRole()")
+    public ResponseEntity<List<RunningSession>> getAllSessionsByUserId(@PathVariable Long userId) {
+        List<RunningSession> sessionIds = analysisService.getAllSessionsByUserId(userId);
+        return ResponseEntity.ok(sessionIds);
     }
 }

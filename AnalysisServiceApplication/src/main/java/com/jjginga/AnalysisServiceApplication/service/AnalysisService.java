@@ -106,4 +106,8 @@ public class AnalysisService {
         }
         return totalDistance;
     }
+
+    public List<RunningSession> getAllSessionsByUserId(Long userId) {
+        return runningSessionRepository.findAllByUserId(userId);
+    }
 }
