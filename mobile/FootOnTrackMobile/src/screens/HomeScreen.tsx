@@ -7,8 +7,8 @@ type RootStackParamList = {
   Home: undefined;
   StartRun: undefined;
   History: undefined;
-  Analysis: undefined;
-  Planning: undefined;
+  PerformanceAnalysis: undefined;
+  TrainingPlan: undefined;
 };
 
 type HomeScreenNavigationProp = StackNavigationProp<
@@ -36,11 +36,11 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       />
       <Button
         title="Performance Analysis"
-        onPress={() => navigation.navigate('Analysis')}
+        onPress={() => navigation.navigate('PerformanceAnalysis')}
       />
       <Button
         title="Plan Workouts"
-        onPress={() => navigation.navigate('Planning')}
+        onPress={() => navigation.navigate('TrainingPlan')}
       />
     </View>
   );

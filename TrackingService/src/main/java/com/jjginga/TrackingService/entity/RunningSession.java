@@ -22,15 +22,28 @@ public class RunningSession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private long id;
+    private Long id;
 
-    @Column(name = "user_id")
-    private long userId;
+    @Column(name="user_id", nullable = false)
+    private String userId;
 
+    @Column(nullable = false)
     private LocalDateTime startTime;
 
+    @Column(nullable = true)
     private LocalDateTime endTime;
 
     private String status;
+
+    @Override
+    public String toString() {
+        return "RunningSession{" +
+                "id=" + id +
+                ", userId='" + userId + '\'' +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", status='" + status + '\'' +
+                '}';
+    }
 
 }

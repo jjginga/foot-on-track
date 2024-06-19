@@ -20,8 +20,12 @@ public class LocationPointService {
     private ElevationClient elevationClient;
 
     public LocationPoint saveLocationPoint(LocationPoint locationPoint) {
+        //**we have to take this form here, otherwise there will be too many requests to the elevation api
         String locations = String.format("%.6f,%.6f", locationPoint.getLatitude(), locationPoint.getLongitude());
+        System.out.println("Locations: "+locations);
         ElevationResponse elevationResponse = elevationClient.getElevation(locations);
+        System.out.println("ElevationResponse: "+elevationResponse);
+        System.out.println("Elevation: "+elevationResponse.getElevations().get(0).getElevation());
         locationPoint.setElevation(elevationResponse.getElevations().get(0).getElevation());
         return locationPointRepository.save(locationPoint);
     }

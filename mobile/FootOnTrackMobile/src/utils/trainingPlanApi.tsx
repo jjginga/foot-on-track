@@ -1,9 +1,9 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Config from 'react-native-config';
+import { API_BASE_URL } from '@env';
 
 const planningApi = axios.create({
-  baseURL: `${Config.API_BASE_URL}:8093`,
+  baseURL: `${API_BASE_URL}:8093`,
 });
 
 planningApi.interceptors.request.use(

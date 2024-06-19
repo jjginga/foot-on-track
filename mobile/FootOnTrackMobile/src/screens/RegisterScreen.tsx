@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import axios from 'axios';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
+import authApi from '../utils/authApi';
+import styles from '../styles/styles';
 
 type RootStackParamList = {
   Login: undefined;
@@ -33,7 +34,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:8090/auth/register', {
+      const response =  await authApi.post('/auth/register', {
         username,
         password,
         email,
@@ -53,30 +54,35 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Username"
+        placeholderTextColor="blue"
         value={username}
         onChangeText={setUsername}
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="blue"
         value={email}
         onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
         placeholder="First Name"
+        placeholderTextColor="blue"
         value={firstName}
         onChangeText={setFirstName}
       />
       <TextInput
         style={styles.input}
         placeholder="Last Name"
+        placeholderTextColor="blue"
         value={lastName}
         onChangeText={setLastName}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="blue"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -84,6 +90,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
+        placeholderTextColor="blue"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
@@ -92,20 +99,5 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 12,
-    paddingHorizontal: 8,
-  },
-});
 
 export default RegisterScreen;

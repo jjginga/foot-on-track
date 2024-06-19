@@ -21,7 +21,7 @@ public class RunningSessionService {
         return repository.findById(id).orElse(null);
     }
 
-    public List<RunningSession> findAllSessionsByUserId(Long userId) {
+    public List<RunningSession> findAllSessionsByUserId(String userId) {
         return repository.findAllByUserId(userId);
     }
 

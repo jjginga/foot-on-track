@@ -1,9 +1,7 @@
 package com.jjginga.TrackingService.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
 import java.util.List;
 
@@ -11,12 +9,15 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 public class ElevationResponse {
 
+    @JsonProperty("results")
     private List<Elevation> elevations;
 
     @Getter
     @Setter
+    @Data
     public static class Elevation {
         private Double latitude;
         private Double longitude;

@@ -1,9 +1,9 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Config from 'react-native-config';
+import { API_BASE_URL } from '@env';
 
 const analysisApi = axios.create({
-  baseURL: `${Config.API_BASE_URL}:8092`,
+  baseURL: `${API_BASE_URL}:8092`,
 });
 
 analysisApi.interceptors.request.use(

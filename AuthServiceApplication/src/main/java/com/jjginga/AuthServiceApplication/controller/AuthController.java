@@ -41,9 +41,9 @@ public class AuthController {
             throw new Exception("Authentication");
         }
 
-        UserDetails userDetails = this.userService.loadUserByUsername(jwtRequest.getUsername());
+        MyUser userDetails = this.userService.loadUserByUsername(jwtRequest.getUsername());
         String token = this.jwtUtils.generateToken(userDetails);
-        return ResponseEntity.ok(new JwtResponse(token));
+        return ResponseEntity.ok(new JwtResponse(token, userDetails.getId()));
     }
 
     @RequestMapping(value ="/register", method = RequestMethod.POST)

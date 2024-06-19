@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
-import axios from 'axios';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
+import authApi from '../utils/authApi';
+import styles from '../styles/styles';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type RootStackParamList = {
   Login: undefined;
@@ -25,18 +27,22 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(
-        'http://localhost:8090/auth/login',
+      const response = await authApi.post('/auth/login',
         {
           username,
           password,
         },
       );
-      if (response.data.success) {
+      if (response.status === 200) {
+        const { token } = response.data;
+        await AsyncStorage.setItem('authToken', token);
+        console.log('Token saved, navigating to Home');
         navigation.navigate('Home');
+      } else {
+        console.error('Login failed');
       }
     } catch (error) {
-      console.error(error);
+      console.error('An error occurred during login', error);
     }
   };
 
@@ -44,12 +50,14 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       <TextInput
         style={styles.input}
+        placeholderTextColor="blue"
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
       />
       <TextInput
         style={styles.input}
+        placeholderTextColor="blue"
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
@@ -60,20 +68,5 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 12,
-    paddingHorizontal: 8,
-  },
-});
 
 export default LoginScreen;

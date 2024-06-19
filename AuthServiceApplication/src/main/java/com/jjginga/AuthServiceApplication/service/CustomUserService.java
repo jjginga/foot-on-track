@@ -23,7 +23,7 @@ public class CustomUserService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public MyUser loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<MyUser> user = userRepo.findByUsername(username);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User not found with username: " + username);

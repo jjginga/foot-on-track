@@ -2,12 +2,17 @@ package com.jjginga.TrackingService.controller;
 
 import com.jjginga.TrackingService.entity.LocationPoint;
 import com.jjginga.TrackingService.entity.RunningSession;
+import com.jjginga.TrackingService.entity.RunningSessionStarter;
 import com.jjginga.TrackingService.service.LocationPointService;
 import com.jjginga.TrackingService.service.RunningSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 
 @RestController
@@ -22,12 +27,32 @@ public class RunningSessionController {
 
     @PostMapping("/start")
     @PreAuthorize("@apiSecurity.hasUserRole()")
-    public ResponseEntity<RunningSession> startSession(@RequestBody RunningSession session) {
-        RunningSession newSession = service.save(session);
+    public ResponseEntity<?> startSession(@RequestBody RunningSessionStarter session) {
+        System.out.println("RunningSession before save: " + session);
+
+        if (session.getUserId() == null) {
+            return ResponseEntity.badRequest().body("Please provide userId");
+        }
+
+        if (!isValidDateTimeFormat(session.getStartTime())) {
+            return ResponseEntity.badRequest().body("Invalid date-time format");
+        }
+
+        RunningSession newSession = new RunningSession();
+        newSession.setUserId(session.getUserId());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+        newSession.setStartTime(LocalDateTime.parse(session.getStartTime(), formatter));
+
+        newSession.setStatus(RunningSession.STARTED);
+        newSession.setEndTime(null);
+        System.out.println("RunningSession before save: " + newSession);
+        newSession = service.save(newSession);
+        System.out.println("RunningSession after save: " + newSession);
         return ResponseEntity.ok(newSession);
     }
 
-    @PostMapping("/{id}/update")
+    @PostMapping("/{sessionId}/update")
     @PreAuthorize("@apiSecurity.hasUserRole()")
     public ResponseEntity<LocationPoint> addLocationPoint(@PathVariable Long sessionId, @RequestBody LocationPoint locationPoint) {
         RunningSession runningSession = service.findById(sessionId);
@@ -36,6 +61,7 @@ public class RunningSessionController {
         }
 
         locationPoint.setRunningSession(runningSession);
+        System.out.println("LocationPoint before save: " + locationPoint);
         LocationPoint savedLocationPoint = locationPointService.saveLocationPoint(locationPoint);
         return ResponseEntity.ok(savedLocationPoint);
     }
@@ -49,6 +75,7 @@ public class RunningSessionController {
         }
 
         session.setStatus(RunningSession.ENDED);
+        session.setEndTime(LocalDateTime.now());
         service.save(session);
         return ResponseEntity.ok(session);
     }
@@ -77,6 +104,16 @@ public class RunningSessionController {
         session.setStatus(RunningSession.STARTED);
         service.save(session);
         return ResponseEntity.ok(session);
+    }
+
+    private boolean isValidDateTimeFormat(String dateTime) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+            LocalDateTime.parse(dateTime, formatter);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
     }
 
 }
