@@ -1,5 +1,6 @@
 package com.jjginga.TrackingService.service;
 
+import com.jjginga.TrackingService.ElevationUpdateTask;
 import com.jjginga.TrackingService.client.ElevationClient;
 import com.jjginga.TrackingService.entity.LocationPoint;
 import com.jjginga.TrackingService.model.ElevationResponse;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 @Service
 public class LocationPointService {
@@ -19,18 +21,23 @@ public class LocationPointService {
     @Autowired
     private ElevationClient elevationClient;
 
+    @Autowired
+    private ExecutorService executorService;
+
     public LocationPoint saveLocationPoint(LocationPoint locationPoint) {
-        //**we have to take this form here, otherwise there will be too many requests to the elevation api
-        String locations = String.format("%.6f,%.6f", locationPoint.getLatitude(), locationPoint.getLongitude());
-        System.out.println("Locations: "+locations);
-        ElevationResponse elevationResponse = elevationClient.getElevation(locations);
-        System.out.println("ElevationResponse: "+elevationResponse);
-        System.out.println("Elevation: "+elevationResponse.getElevations().get(0).getElevation());
-        locationPoint.setElevation(elevationResponse.getElevations().get(0).getElevation());
+        locationPoint.setElevation(0.0);
         return locationPointRepository.save(locationPoint);
     }
 
     public List<LocationPoint> findAllBySessionId(Long sessionId) {
         return locationPointRepository.findAllByRunningSessionId(sessionId);
     }
+
+    public void updateElevationsForSession(Long sessionId) {
+        ElevationUpdateTask elevationUpdateTask = new ElevationUpdateTask(sessionId, locationPointRepository, elevationClient);
+        executorService.submit(elevationUpdateTask);
+    }
+
+
+
 }
