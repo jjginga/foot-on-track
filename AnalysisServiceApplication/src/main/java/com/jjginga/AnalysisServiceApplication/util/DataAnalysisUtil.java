@@ -2,6 +2,7 @@ package com.jjginga.AnalysisServiceApplication.util;
 
 import com.jjginga.AnalysisServiceApplication.entity.LocationPoint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DataAnalysisUtil {
@@ -27,6 +28,40 @@ public class DataAnalysisUtil {
         //returns the distance in Kms
         return EARTH_RADIUS_KM * c;
     }
+
+    public static List<LocationPoint> applyMovingAverageFilter(List<LocationPoint> points, int windowSize) {
+        List<LocationPoint> smoothedPoints = new ArrayList<>();
+        int halfWindow = windowSize / 2;
+
+        for (int i = 0; i < points.size(); i++) {
+            double sumLat = 0;
+            double sumLon = 0;
+            int count = 0;
+
+            for (int j = -halfWindow; j <= halfWindow; j++) {
+                int index = i + j;
+                if (index >= 0 && index < points.size()) {
+                    sumLat += points.get(index).getLatitude();
+                    sumLon += points.get(index).getLongitude();
+                    count++;
+                }
+            }
+
+            double avgLat = sumLat / count;
+            double avgLon = sumLon / count;
+
+            LocationPoint point = new LocationPoint();
+            point.setLatitude(avgLat);
+            point.setLongitude(avgLon);
+            point.setTimestamp(points.get(i).getTimestamp());
+            point.setElevation(points.get(i).getElevation());
+
+            smoothedPoints.add(point);
+        }
+
+        return smoothedPoints;
+    }
+
 
     public static double calculateTotalElevationGain(List<LocationPoint> points) {
         double totalElevationGain = 0.0;

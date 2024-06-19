@@ -23,7 +23,7 @@ public class AnalysisController {
 
     @GetMapping("/performance/{userId}")
     @PreAuthorize("@apiSecurity.hasUserRole()")
-    public ResponseEntity<AnalysisResult> getPerformanceAnalysis(@PathVariable Long userId) {
+    public ResponseEntity<AnalysisResult> getPerformanceAnalysis(@PathVariable String userId) {
         try {
             AnalysisResult result = analysisService.predictPerformance(userId);
             return ResponseEntity.ok(result);
@@ -47,7 +47,7 @@ public class AnalysisController {
 
     @GetMapping("/history/{userId}")
     @PreAuthorize("@apiSecurity.hasUserRole()")
-    public ResponseEntity<List<RunningSession>> getAllSessionsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<RunningSession>> getAllSessionsByUserId(@PathVariable String userId) {
         List<RunningSession> sessionIds = analysisService.getAllSessionsByUserId(userId);
         return ResponseEntity.ok(sessionIds);
     }

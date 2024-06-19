@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface RunningSessionRepository extends JpaRepository<RunningSession, Long> {
-    List<RunningSession> findAllByUserId(Long userId);
+    List<RunningSession> findAllByUserId(String userId);
 }

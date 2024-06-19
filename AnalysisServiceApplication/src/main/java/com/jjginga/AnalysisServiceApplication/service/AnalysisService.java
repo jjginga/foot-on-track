@@ -16,8 +16,7 @@ import smile.regression.LinearModel;
 import smile.regression.OLS;
 
 import java.time.ZoneOffset;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,26 +55,33 @@ public class AnalysisService {
 
     }
 
-    public AnalysisResult predictPerformance(Long userId) {
+    public AnalysisResult predictPerformance(String userId) {
         DataFrame processedData = processData(userId);
-        // Assuming 'distance' is the predictor and 'time' is the response
-        Formula formula = Formula.lhs("time");  // Only response variable specified, assuming only one predictor: 'distance'
+        //Assuming 'distance' and elevation are the predictor and 'time' is the response
+        Formula formula = Formula.of("time", "distance", "elevationGain");  // Only response variable specified, assuming only one predictor: 'distance'
 
         LinearModel model = OLS.fit(formula, processedData, new Properties());
+        //RandomForest model = RandomForest.fit(formula, processedData);
 
         double[][] query = {
-                {5.0}, {10.0}, {21.0975}, {42.195} // Distances for predictions
+                {5.0, 0.0}, {10.0, 0.0}, {21.0975, 0.0}, {42.195, 0.0} //distances for predictions
         };
 
         double[] predictions = new double[query.length];
         for (int i = 0; i < query.length; i++) {
-            predictions[i] = model.predict(query[i]);
+            DataFrame singlePoint = DataFrame.of(new double[][]{query[i]}, "distance", "elevationGain");
+            try {
+                double[] predictedValues = model.predict(singlePoint);
+                predictions[i] = predictedValues[0];
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Error during prediction: " + e.getMessage());
+            }
         }
-
         return new AnalysisResult(predictions[0], predictions[1], predictions[2], predictions[3]);
     }
 
-    private DataFrame processData(Long userId) {
+    private DataFrame processData(String userId) {
         List<RunningSession> sessions = runningSessionRepository.findAllByUserId(userId);
         List<double[]> data = sessions.stream()
                 .map(session -> new double[] {
@@ -97,6 +103,14 @@ public class AnalysisService {
 
     public double calculateTotalDistanceForSession(Long sessionId) {
         List<LocationPoint> points = locationPointRepository.findAllByRunningSessionId(sessionId);
+
+        Collections.sort(points, new Comparator<LocationPoint>() {
+            @Override
+            public int compare(LocationPoint p1, LocationPoint p2) {
+                return p1.getTimestamp().compareTo(p2.getTimestamp());
+            }
+        });
+
         double totalDistance = 0.0;
         for (int i = 1; i < points.size(); i++) {
             LocationPoint prev = points.get(i - 1);
@@ -107,7 +121,7 @@ public class AnalysisService {
         return totalDistance;
     }
 
-    public List<RunningSession> getAllSessionsByUserId(Long userId) {
+    public List<RunningSession> getAllSessionsByUserId(String userId) {
         return runningSessionRepository.findAllByUserId(userId);
     }
 }

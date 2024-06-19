@@ -31,7 +31,7 @@ def start_session(token, user_id, start_time):
     }
     data = {
         "userId": user_id,
-        "startTime": start_time
+        "time": start_time
     }
     #print(f"URL: {url}")
     #print(f"Headers: {headers}")
@@ -54,7 +54,7 @@ def update_location(token, session_id, latitude, longitude, timestamp):
         "timestamp": timestamp
     }
     response = requests.post(url, json=data, headers=headers)
-    print(f"Response body: {response.text}")
+    #print(f"Response body: {response.text}")
     return response.status_code
 
 # Function to pause the running session
@@ -78,13 +78,17 @@ def resume_session(token, session_id):
     return response.status_code
 
 # Function to stop the running session
-def stop_session(token, session_id):
+def stop_session(token, session_id, end_time):
     url = f'{base_url}:8091/running-sessions/{session_id}/stop'
     headers = {
         'accept': '*/*',
-        'Authorization': f'Bearer {token}'
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
     }
-    response = requests.post(url, headers=headers)
+    data = {
+        "time": end_time
+    }
+    response = requests.post(url, json=data, headers=headers)
     return response.status_code
 
 # Function to simulate the run from a CSV file
@@ -117,15 +121,16 @@ def simulate_run_from_csv(token, user_id, csv_file):
         else:
             print(f"Failed to resume session {session_id}.")
 
-        stop_status_code = stop_session(token, session_id)
+        end_time = rows[-1]['timestamp']
+        stop_status_code = stop_session(token, session_id, end_time)
         if stop_status_code == 200:
             print(f"Session {session_id} stopped successfully.")
         else:
             print(f"Failed to stop session {session_id}.")
 
 # Login credentials
-username = 'runner1'
-password = 'runner1'
+username = "salvor_hardin"
+password = "foundation"
 
 # Get the JWT token and userId
 credentials = login(username, password)
