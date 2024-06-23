@@ -34,7 +34,10 @@ public class CustomUserService implements UserDetailsService {
 
     public MyUser saveUser(MyUser user) throws Exception {
         if (userRepo.findByUsername(user.getUsername()).isPresent()) {
-            throw new Exception("There is an account with that email address: " + user.getUsername());
+            throw new Exception("There is an account with that username already: " + user.getUsername());
+        }
+        if (userRepo.findByEmail(user.getEmail()).isPresent()) {
+            throw new Exception("There is an account with that email address: " + user.getEmail());
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
