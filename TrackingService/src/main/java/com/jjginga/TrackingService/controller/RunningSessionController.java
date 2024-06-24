@@ -6,6 +6,7 @@ import com.jjginga.TrackingService.entity.SimpleRunningSession;
 import com.jjginga.TrackingService.service.LocationPointService;
 import com.jjginga.TrackingService.service.RunningSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class RunningSessionController {
     @PostMapping("/start")
     @PreAuthorize("@apiSecurity.hasUserRole()")
     public ResponseEntity<?> startSession(@RequestBody SimpleRunningSession session) {
-        System.out.println("RunningSession before save: " + session);
+        //System.out.println("RunningSession before save: " + session);
 
         if (session.getUserId() == null) {
             return ResponseEntity.badRequest().body("Please provide userId");
@@ -37,6 +38,10 @@ public class RunningSessionController {
 
         if (!isValidDateTimeFormat(session.getTime())) {
             return ResponseEntity.badRequest().body("Invalid date-time format");
+        }
+
+        if (service.hasOngoingSession(session.getUserId())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already has an ongoing session");
         }
 
         RunningSession newSession = new RunningSession();
@@ -56,10 +61,14 @@ public class RunningSessionController {
 
     @PostMapping("/{sessionId}/update")
     @PreAuthorize("@apiSecurity.hasUserRole()")
-    public ResponseEntity<LocationPoint> addLocationPoint(@PathVariable Long sessionId, @RequestBody LocationPoint locationPoint) {
+    public ResponseEntity<?> addLocationPoint(@PathVariable Long sessionId, @RequestBody LocationPoint locationPoint) {
         RunningSession runningSession = service.findById(sessionId);
         if (runningSession==null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already has an ongoing session");
+        }
+
+        if (!(runningSession.getStatus().equals(RunningSession.STARTED))) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("The session number is not valid.");
         }
 
         locationPoint.setRunningSession(runningSession);
@@ -70,12 +79,16 @@ public class RunningSessionController {
 
     @PostMapping("/{id}/stop")
     @PreAuthorize("@apiSecurity.hasUserRole()")
-    public ResponseEntity<RunningSession> stopSession(@PathVariable Long id, @RequestBody SimpleRunningSession endSession) {
+    public ResponseEntity<?> stopSession(@PathVariable Long id, @RequestBody SimpleRunningSession endSession) {
         RunningSession session = service.findById(id);
         if (session == null) {
             return ResponseEntity.notFound().build();
         }
 
+        if (!(session.getStatus().equals(RunningSession.STARTED)
+                || session.getStatus().equals(RunningSession.PAUSED))) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("The session is not paused.");
+        }
         session.setStatus(RunningSession.ENDED);
         session.setEndTime(getLocalDateTime(endSession.getTime()));
         service.save(session);
@@ -86,10 +99,14 @@ public class RunningSessionController {
 
     @PostMapping("/{id}/pause")
     @PreAuthorize("@apiSecurity.hasUserRole()")
-    public ResponseEntity<RunningSession> pauseSession(@PathVariable Long id) {
+    public ResponseEntity<?> pauseSession(@PathVariable Long id) {
         RunningSession session = service.findById(id);
         if (session == null) {
             return ResponseEntity.notFound().build();
+        }
+
+        if (!(session.getStatus().equals(RunningSession.STARTED))) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("The session number is not valid.");
         }
 
         session.setStatus(RunningSession.PAUSED);
@@ -99,12 +116,14 @@ public class RunningSessionController {
 
     @PostMapping("/{id}/resume")
     @PreAuthorize("@apiSecurity.hasUserRole()")
-    public ResponseEntity<RunningSession> resumeSession(@PathVariable Long id) {
+    public ResponseEntity<?> resumeSession(@PathVariable Long id) {
         RunningSession session = service.findById(id);
         if (session == null && !session.getStatus().equals(RunningSession.PAUSED)) {
             return ResponseEntity.badRequest().body(null);
         }
-
+        if (!(session.getStatus().equals(RunningSession.PAUSED))) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("The session is not paused.");
+        }
         session.setStatus(RunningSession.STARTED);
         service.save(session);
         return ResponseEntity.ok(session);

@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface RunningSessionRepository extends JpaRepository<RunningSession, Long> {
     List<RunningSession> findAllByUserId(String userId);
+
+    boolean existsByUserIdAndStatus(String userId, String started);
 }

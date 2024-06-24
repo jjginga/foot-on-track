@@ -25,4 +25,7 @@ public class RunningSessionService {
         return repository.findAllByUserId(userId);
     }
 
+    public boolean hasOngoingSession(String userId) {
+        return repository.existsByUserIdAndStatus(userId, RunningSession.STARTED);
+    }
 }
