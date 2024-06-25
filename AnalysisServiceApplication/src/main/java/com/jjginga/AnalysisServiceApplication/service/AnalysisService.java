@@ -12,8 +12,10 @@ import org.springframework.stereotype.Service;
 import smile.data.DataFrame;
 import smile.data.formula.Formula;
 import smile.data.vector.DoubleVector;
+import smile.regression.GradientTreeBoost;
 import smile.regression.LinearModel;
 import smile.regression.OLS;
+import smile.regression.RandomForest;
 
 import java.time.ZoneOffset;
 import java.util.*;
@@ -80,6 +82,56 @@ public class AnalysisService {
         }
         return new AnalysisResult(predictions[0], predictions[1], predictions[2], predictions[3]);
     }
+
+    public AnalysisResult predictPerformanceWithRandomForest(String userId) {
+        DataFrame processedData = processData(userId);
+        Formula formula = Formula.of("time", "distance", "elevationGain");
+
+        // Fit the Random Forest model
+        RandomForest model = RandomForest.fit(formula, processedData);
+
+        double[][] query = {
+                {5.0, 0.0}, {10.0, 0.0}, {21.0975, 0.0}, {42.195, 0.0}
+        };
+
+        double[] predictions = new double[query.length];
+        for (int i = 0; i < query.length; i++) {
+            DataFrame singlePoint = DataFrame.of(new double[][]{query[i]}, "distance", "elevationGain");
+            try {
+                double[] predictedValues = model.predict(singlePoint);
+                predictions[i] = predictedValues[0];
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Error during prediction: " + e.getMessage());
+            }
+        }
+        return new AnalysisResult(predictions[0], predictions[1], predictions[2], predictions[3]);
+    }
+
+    public AnalysisResult predictPerformanceWithGradientBoosting(String userId) {
+        DataFrame processedData = processData(userId);
+        Formula formula = Formula.of("time", "distance", "elevationGain");
+
+        GradientTreeBoost model = GradientTreeBoost.fit(formula, processedData);
+
+        double[][] query = {
+                {5.0, 0.0}, {10.0, 0.0}, {21.0975, 0.0}, {42.195, 0.0}
+        };
+
+        double[] predictions = new double[query.length];
+        for (int i = 0; i < query.length; i++) {
+            DataFrame singlePoint = DataFrame.of(new double[][]{query[i]}, "distance", "elevationGain");
+            try {
+                double[] predictedValues = model.predict(singlePoint);
+                predictions[i] = predictedValues[0];
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Error during prediction: " + e.getMessage());
+            }
+        }
+        return new AnalysisResult(predictions[0], predictions[1], predictions[2], predictions[3]);
+    }
+
 
     private DataFrame processData(String userId) {
         List<RunningSession> sessions = runningSessionRepository.findAllByUserId(userId);

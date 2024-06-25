@@ -30,9 +30,6 @@ public class TrainingPlanService {
 
     @Transactional
     public TrainingPlan save(TrainingPlan trainingPlan) {
-        for (TrainingSession session : trainingPlan.getSessions()) {
-            session.setTrainingPlan(trainingPlan);  // Set the back reference if not already set
-        }
         return trainingPlanRepository.save(trainingPlan);
     }
 
@@ -55,5 +52,9 @@ public class TrainingPlanService {
                     session.setTime(updatedSession.getTime());
                     return trainingSessionRepository.save(session);
                 }).orElseThrow(() -> new RuntimeException("Session not found"));
+    }
+
+    public List<TrainingPlan> findAllByUserId(String userId) {
+        return trainingPlanRepository.findAllByUserId(userId);
     }
 }

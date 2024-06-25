@@ -11,7 +11,10 @@ analysisApi.interceptors.request.use(
     const token = await AsyncStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+
     }
+    config.headers.Accept = '*/*';
+    console.log(config)
     return config;
   },
   (error) => {

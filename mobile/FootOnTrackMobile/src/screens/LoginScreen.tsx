@@ -34,8 +34,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         },
       );
       if (response.status === 200) {
-        const { token } = response.data;
+        const { token, userId } = response.data;
         await AsyncStorage.setItem('authToken', token);
+        await AsyncStorage.setItem('userId', userId);
         console.log('Token saved, navigating to Home');
         navigation.navigate('Home');
       } else {

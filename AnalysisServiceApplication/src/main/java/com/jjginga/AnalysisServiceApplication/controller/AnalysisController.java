@@ -32,6 +32,28 @@ public class AnalysisController {
         }
     }
 
+    @GetMapping("/performanceRF/{userId}")
+    @PreAuthorize("@apiSecurity.hasUserRole()")
+    public ResponseEntity<AnalysisResult> getPerformanceAnalysisRF(@PathVariable String userId) {
+        try {
+            AnalysisResult result = analysisService.predictPerformanceWithRandomForest(userId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/performanceGB/{userId}")
+    @PreAuthorize("@apiSecurity.hasUserRole()")
+    public ResponseEntity<AnalysisResult> getPerformanceAnalysisGB(@PathVariable String userId) {
+        try {
+            AnalysisResult result = analysisService.predictPerformanceWithGradientBoosting(userId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/session/{sessionId}")
     @PreAuthorize("@apiSecurity.hasUserRole()")
     public ResponseEntity<CurrentAnalysisResult> analyzeSession(@PathVariable Long sessionId) {

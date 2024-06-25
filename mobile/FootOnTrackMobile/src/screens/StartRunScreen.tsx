@@ -4,6 +4,7 @@ import Geolocation from '@react-native-community/geolocation';
 import MapView, { Marker } from 'react-native-maps';
 import trackingApi from '../utils/trackingApi';
 import analysisApi from '../utils/analysisApi';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface SessionAnalysis {
   time: number;
@@ -50,7 +51,7 @@ const StartRunScreen = () => {
           }
         },
         (error) => console.error(error),
-        { enableHighAccuracy: true, distanceFilter: 1, interval: 1000 } // Coleta de dados a cada segundo
+        { enableHighAccuracy: true, distanceFilter: 1, interval: 1000 }
       );
 
       positionInterval = setInterval(async () => {
@@ -111,7 +112,14 @@ const StartRunScreen = () => {
 
   const startRun = async () => {
     try {
-      const response = await trackingApi.post('/running-sessions/start');
+      const userId = await AsyncStorage.getItem('userId');
+      const currentTime = new Date().toISOString();
+
+      const response = await trackingApi.post('/running-sessions/start', {
+        userId: userId,
+        time: currentTime
+      });
+
       setSessionId(response.data.id);
       setIsRunning(true);
     } catch (error) {
@@ -122,7 +130,12 @@ const StartRunScreen = () => {
   const stopRun = async () => {
     try {
       if (sessionId) {
-        await trackingApi.post(`/running-sessions/${sessionId}/stop`);
+        const currentTime = new Date().toISOString();
+
+        await trackingApi.post(`/running-sessions/${sessionId}/stop`, {
+          time: currentTime
+        });
+
         const analysisResponse = await analysisApi.get(`/session/${sessionId}`);
         setSessionAnalysis(analysisResponse.data);
         setIsRunning(false);
@@ -163,11 +176,22 @@ const StartRunScreen = () => {
         <Marker coordinate={position} />
       </MapView>
       <View style={styles.buttonContainer}>
-        <Button title="Start Run" onPress={startRun} disabled={isRunning} />
-        <Button title="Pause Run" onPress={pauseRun} disabled={!isRunning || isPaused} />
-        <Button title="Resume Run" onPress={resumeRun} disabled={!isPaused} />
-        <Button title="Stop Run" onPress={stopRun} disabled={!isRunning} />
+        <View style={styles.buttonWrapper}>
+          <Button title="Start Run" onPress={startRun} disabled={isRunning} />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button title="Pause Run" onPress={pauseRun} disabled={!isRunning || isPaused} />
+        </View>
+        <View style={styles.separator} />
+        <View style={styles.buttonWrapper}>
+          <Button title="Stop Run" onPress={stopRun} disabled={!isRunning} />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button title="Resume Run" onPress={resumeRun} disabled={!isPaused} />
+        </View>
+
       </View>
+
       {isRunning && <Text>Running Session ID: {sessionId}</Text>}
 
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
@@ -189,18 +213,31 @@ const StartRunScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#0000FF',
+    padding: 16,
   },
   map: {
     flex: 1,
   },
+  separator: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#FFFFFF',
+    marginVertical: 8,
+  },
   buttonContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-around',
     padding: 16,
   },
+  buttonWrapper: {
+    width: '45%',
+    marginBottom: 16,
+  },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#0000FF',
     borderRadius: 20,
     padding: 35,
     alignItems: 'center',
@@ -212,6 +249,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  text: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    marginBottom: 8,
   },
 });
 

@@ -17,9 +17,13 @@ const PerformanceAnalysisScreen = () => {
     const fetchPerformance = async () => {
       try {
         const userId = await AsyncStorage.getItem('userId');
-        if (!userId) return;
+        if (!userId) {
+          console.error('User ID not found in AsyncStorage');
+          return;
+        }
 
-        const response = await analysisApi.get(`/performance/${userId}`);
+        const response = await analysisApi.get(`analysis/performance/${userId}`);
+        console.log('API response:', response.data);
         setPerformanceData(response.data);
       } catch (error) {
         console.error('Error fetching performance data:', error);
@@ -29,17 +33,26 @@ const PerformanceAnalysisScreen = () => {
     fetchPerformance();
   }, []);
 
+  const convertMinutesToHHMMSS = (minutes: number): string => {
+    const h = Math.floor(minutes / 60);
+    const m = Math.floor(minutes % 60);
+    const s = Math.floor((minutes * 60) % 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+
+
   return (
     <View style={styles.container}>
       {performanceData ? (
         <View>
-          <Text style={styles.text}>5km Prediction: {performanceData.time5km} min</Text>
-          <Text style={styles.text}>10km Prediction: {performanceData.time10km} min</Text>
-          <Text style={styles.text}>Half Marathon Prediction: {performanceData.timeHalfMarathon} min</Text>
-          <Text style={styles.text}>Marathon Prediction: {performanceData.timeMarathon} min</Text>
+          <Text style={styles.textBlue}>5km Prediction: {convertMinutesToHHMMSS(performanceData.time5km)} </Text>
+          <Text style={styles.textBlue}>10km Prediction: {convertMinutesToHHMMSS(performanceData.time10km)} </Text>
+          <Text style={styles.textBlue}>Half Marathon Prediction: {convertMinutesToHHMMSS(performanceData.timeHalfMarathon)} </Text>
+          <Text style={styles.textBlue}>Marathon Prediction: {convertMinutesToHHMMSS(performanceData.timeMarathon)} </Text>
         </View>
       ) : (
-        <Text>Loading performance data...</Text>
+        <Text style={styles.textBlack}>Loading performance data...</Text>
       )}
     </View>
   );
@@ -51,10 +64,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  text: {
+  textBlack: {
     fontSize: 18,
     marginBottom: 8,
+    color: 'black',
+  },
+  textBlue: {
+    fontSize: 18,
+    marginBottom: 8,
+    color: 'blue',
   },
 });
+
 
 export default PerformanceAnalysisScreen;

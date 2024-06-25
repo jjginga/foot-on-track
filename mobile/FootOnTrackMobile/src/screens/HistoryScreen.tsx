@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Animated } from "react-native";
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
+import { format } from 'date-fns';
 import analysisApi from '../utils/analysisApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ScrollView = Animated.ScrollView;
 
 type RootStackParamList = {
   History: undefined;
@@ -21,90 +23,101 @@ type Props = {
 
 interface RunningSession {
   id: string;
-  date: string;
-  distance?: number;
-  duration?: number;
+  startTime: string;
+  endTime: string;
+  distance: number;
+  duration: number;
 }
+
 
 interface CurrentAnalysisResult {
   time: number;
   distance: number;
 }
 
-const HistoryScreen: React.FC<Props> = ({ navigation }) => {
-  const [sessions, setSessions] = useState<RunningSession[]>([]);
+const HistoryScreen = () => {
+  const [runningSessions, setRunningSessions] = useState<RunningSession[]>([]);
 
   useEffect(() => {
-    const fetchHistory = async () => {
+    const fetchRunningSessions = async () => {
       try {
         const userId = await AsyncStorage.getItem('userId');
         if (!userId) return;
 
-        const response = await analysisApi.get(`/history/${userId}`);
-        const sessionData: RunningSession[] = await Promise.all(
-          response.data.map(async (session: RunningSession) => {
-            const analysisResponse = await analysisApi.get(`/session/${session.id}`);
-            const analysis: CurrentAnalysisResult = analysisResponse.data;
-            return {
-              ...session,
-              distance: analysis.distance,
-              duration: analysis.time,
-            };
-          })
-        );
+        const response = await analysisApi.get(`analysis/history/${userId}`);
 
-        setSessions(sessionData);
+        const sessions = response.data;
+
+        const sessionsWithAnalysis = await Promise.all(sessions.map(async (session: RunningSession) => {
+          const analysisResponse = await analysisApi.get(`/analysis/session/${session.id}`);
+          const analysis: CurrentAnalysisResult = analysisResponse.data;
+          return {
+            ...session,
+            distance: analysis.distance.toFixed(2),
+            duration: analysis.time,
+          };
+        }));
+
+        const sortedSessions = sessionsWithAnalysis.sort(
+          (a: RunningSession, b: RunningSession) =>
+            new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+        );
+        setRunningSessions(sortedSessions);
       } catch (error) {
-        console.error('Error fetching history:', error);
+        console.error('Error fetching running sessions:', error);
       }
     };
 
-    fetchHistory();
+    fetchRunningSessions();
   }, []);
 
-  const renderItem = ({ item }: { item: RunningSession }) => (
-    <TouchableOpacity
-      style={styles.item}
-      onPress={() => navigation.navigate('Details', { sessionId: item.id })}
-    >
-      <Text style={styles.title}>{item.date}</Text>
-      <Text style={styles.details}>Distance: {item.distance} km</Text>
-      <Text style={styles.details}>
-        Pace: {(item.duration && item.distance) ? (item.duration / 60 / item.distance).toFixed(2) : 'N/A'} min/km
-      </Text>
-    </TouchableOpacity>
-  );
+  const convertMinutesToHHMMSS = (minutes: number): string => {
+    const h = Math.floor(minutes / 60);
+    const m = Math.floor(minutes % 60);
+    const s = Math.floor((minutes * 60) % 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const calculatePace = (duration: number, distance: number): string => {
+    const pace = duration / distance;
+    const m = Math.floor(pace);
+    const s = Math.floor((pace - m) * 60);
+    return `${m}:${s.toString().padStart(2, '0')} min/km`;
+  };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={sessions}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-      />
-    </View>
+    <ScrollView style={styles.container}>
+      {runningSessions.map((session) => (
+        <View key={session.id} style={styles.sessionContainer}>
+          <Text style={styles.text}>Date: {format(new Date(session.startTime), 'dd/MM/yyyy')}</Text>
+          <Text style={styles.text}>Distance: {session.distance} km</Text>
+          <Text style={styles.text}>Duration: {convertMinutesToHHMMSS(session.duration)}</Text>
+          <Text style={styles.text}>Pace: {calculatePace(session.duration, session.distance)}</Text>
+        </View>
+      ))}
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
     padding: 16,
   },
-  item: {
+  sessionContainer: {
+    backgroundColor: '#0000FF',
     padding: 16,
-    marginVertical: 8,
-    backgroundColor: '#f9c2ff',
+    marginBottom: 16,
     borderRadius: 8,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  details: {
-    fontSize: 16,
+  text: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    marginBottom: 8,
   },
 });
+
 
 export default HistoryScreen;
 

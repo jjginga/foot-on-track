@@ -26,7 +26,7 @@ public class TrainingSession {
     private double time;
     private int week;
     private int day;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "training_plan_id")
-    private TrainingPlan trainingPlan;
+    @Column(name = "training_plan_id")
+    private Long trainingPlan;
+
 }

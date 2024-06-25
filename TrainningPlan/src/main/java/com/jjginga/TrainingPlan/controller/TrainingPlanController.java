@@ -18,10 +18,10 @@ public class TrainingPlanController {
     private TrainingPlanService trainingPlanService;
 
     //endpoints for managing training plans
-    @GetMapping("/get-all")
+    @GetMapping("/get-all/{userId}")
     @PreAuthorize("@apiSecurity.hasUserRole()")
-    public ResponseEntity<List<TrainingPlan>> getAllTrainingPlans() {
-        return ResponseEntity.ok(trainingPlanService.findAll());
+    public ResponseEntity<List<TrainingPlan>> getAllTrainingPlans(@PathVariable String userId) {
+        return ResponseEntity.ok(trainingPlanService.findAllByUserId(userId));
     }
 
     @GetMapping("/{id}")
@@ -35,6 +35,7 @@ public class TrainingPlanController {
     @PostMapping("/create")
     @PreAuthorize("@apiSecurity.hasUserRole()")
     public ResponseEntity<TrainingPlan> createTrainingPlan(@RequestBody TrainingPlan trainingPlan) {
+        trainingPlan.setStatus(TrainingPlan.TOSTART);
         TrainingPlan savedPlan = trainingPlanService.save(trainingPlan);
         return ResponseEntity.ok(savedPlan);
     }
